@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Mini Vintage Survival</title>
+<style>
+  body { margin:0; background:#222; color:white; font-family:monospace; }
+  canvas { display:block; margin:auto; background:#87CEEB; }
+  #ui { position:absolute; top:10px; left:10px; }
+</style>
+</head>
+<body>
+
+<div id="ui">
+  Hunger: <span id="hunger">100</span>
+</div>
+
+<canvas id="game" width="800" height="400"></canvas>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+const tileSize = 20;
+const cols = canvas.width / tileSize;
+const rows = canvas.height / tileSize;
+
+let world = [];
+for(let y=0;y<rows;y++){
+  world[y]=[];
+  for(let x=0;x<cols;x++){
+    world[y][x] = y > rows/2 ? 1 : 0; // ground
+  }
+}
+
+let player = {
+  x: 5,
+  y: 5,
+  hunger: 100
+};
+
+let keys = {};
+
+document.addEventListener("keydown", e=>keys[e.key]=true);
+document.addEventListener("keyup", e=>keys[e.key]=false);
+
+canvas.addEventListener("click", e=>{
+  const rect = canvas.getBoundingClientRect();
+  const mx = Math.floor((e.clientX-rect.left)/tileSize);
+  const my = Math.floor((e.clientY-rect.top)/tileSize);
+  world[my][mx] = world[my][mx] ? 0 : 1; // toggle block
+});
+
+function update(){
+  if(keys["ArrowRight"]) player.x += 0.1;
+  if(keys["ArrowLeft"]) player.x -= 0.1;
+  if(keys["ArrowUp"]) player.y -= 0.1;
+  if(keys["ArrowDown"]) player.y += 0.1;
+
+  player.hunger -= 0.02;
+  if(player.hunger < 0) player.hunger = 0;
+
+  document.getElementById("hunger").textContent = Math.floor(player.hunger);
+}
+
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  for(let y=0;y<rows;y++){
+    for(let x=0;x<cols;x++){
+      if(world[y][x]===1){
+        ctx.fillStyle="#654321";
+        ctx.fillRect(x*tileSize,y*tileSize,tileSize,tileSize);
+      }
+    }
+  }
+
+  ctx.fillStyle="red";
+  ctx.fillRect(player.x*tileSize, player.y*tileSize, tileSize, tileSize);
+}
+
+function loop(){
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+loop();
+</script>
+
+</body>
+</html>
